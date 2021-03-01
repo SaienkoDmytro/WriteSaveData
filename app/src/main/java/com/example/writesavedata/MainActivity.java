@@ -1,5 +1,6 @@
 package com.example.writesavedata;
 
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Binder;
@@ -26,12 +27,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        File file = new File(MainActivity.this.getFilesDir(), FILE_NAME);
-        Uri fileUri = FileProvider.getUriForFile(MainActivity.this, "com.example.writesavedata", file);
 
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> {
+            File file = new File(MainActivity.this.getFilesDir(), FILE_NAME);
+            Uri fileUri = FileProvider.getUriForFile(MainActivity.this, "com.example.writesavedata.provider", file);
+            // попытка 4
+            //this.grantUriPermission("com.example.writesavedata", fileUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
             if (!file.exists()) {
                 Toast.makeText(this, getText(R.string.error), Toast.LENGTH_SHORT).show();
             } else {
@@ -50,8 +53,10 @@ public class MainActivity extends AppCompatActivity {
                 // попытка 2
                 // MainActivity.this.grantUriPermission("com.example.writesavedata", fileUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 // попытка 3
-                //intentShare.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                startActivity(Intent.createChooser(intentShare, getString(R.string.text_share)));
+                intentShare.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                // удалил createChooser без него ошибок нет
+                //startActivity(Intent.createChooser(intentShare, getString(R.string.text_share)));
+                startActivity(intentShare);
             }
         });
     }

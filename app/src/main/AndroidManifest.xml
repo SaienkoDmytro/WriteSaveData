@@ -3,7 +3,6 @@
     package="com.example.writesavedata">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
 
     <application
@@ -24,7 +23,7 @@
             </intent-filter>
         </activity>
         <provider
-            android:authorities="com.example.writesavedata"
+            android:authorities="com.example.writesavedata.provider"
             android:name="androidx.core.content.FileProvider"
             android:exported="false"
             android:grantUriPermissions="true">
