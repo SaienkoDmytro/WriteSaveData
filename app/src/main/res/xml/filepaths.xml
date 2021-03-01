@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<filepaths xmlns:android="http://schemas.android.com/apk/res/android">
-<external-files-path
-    name = "external_files"
+<paths>
+<files-path
+    name = "files"
     path = "."/>
-</filepaths>
+</paths>
