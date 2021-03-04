@@ -4,7 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context=".MainActivity">
+
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -16,17 +18,129 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:popupTheme="@style/Theme.WriteSaveData.PopupOverlay" />
+            app:popupTheme="@style/Theme.WriteSaveData.AppBarOverlay" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab"
+    <include layout="@layout/content_main" />
+    <View
+        android:id="@+id/fabBGLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorTransBg"
+        android:visibility="gone"/>
+    <LinearLayout
+        android:id="@+id/fabLayout1ShareFile"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/standard_23"
+        android:padding="@dimen/standard_12"
+        android:clipToPadding="false"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/standard_23"
         android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        app:srcCompat="@android:drawable/ic_dialog_email"
-        android:contentDescription="@string/share" />
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textColor="@color/black"
+            android:text="@string/share_file"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabShareFile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            app:srcCompat="@android:drawable/ic_dialog_email"
+            app:fabSize="mini"
+            android:contentDescription="@string/share_file" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/fabLayoutChosePhoto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/standard_12"
+        android:clipToPadding="false"
+        android:layout_marginEnd="@dimen/standard_23"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/standard_23"
+        android:layout_gravity="bottom|end"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textColor="@color/black"
+            android:text="@string/chose_photo"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabChosePhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            app:srcCompat="@drawable/ic_chosephoto"
+            app:fabSize="mini"
+            android:contentDescription="@string/chose_photo" />
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/fabLayoutTakePhoto"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/standard_12"
+        android:clipToPadding="false"
+        android:layout_marginEnd="@dimen/standard_23"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/standard_23"
+        android:layout_gravity="bottom|end"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="20sp"
+            android:textColor="@color/black"
+            android:text="@string/take_photo"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabTakePhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            app:srcCompat="@drawable/ic_camera"
+            android:tint="@android:color/white"
+            app:fabSize="mini"
+            android:contentDescription="@string/take_photo" />
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/fab_margin"
+        android:gravity="center_vertical"
+        android:clipToPadding="false"
+        android:padding="@dimen/standard_12"
+        android:layout_marginBottom="@dimen/fab_margin"
+        android:layout_gravity="bottom|end">
+
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabNative"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:gravity="center_vertical"
+            app:srcCompat="@drawable/ic_floatbutton"
+            app:fabSize="normal"
+            android:contentDescription="@string/fab_button" />
+    </LinearLayout>
+
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
