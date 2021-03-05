@@ -4,7 +4,7 @@ import android.Manifest;
 import android.animation.Animator;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
@@ -25,8 +25,10 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -37,12 +39,12 @@ public class MainActivity extends AppCompatActivity {
     private final static String FILE_NAME = "example.txt";
     private static final int PERMISSION_CODE = 999;
     static final int REQUEST_IMAGE_CAPTURE = 1;
-    private ImageView imageView;
 
-    FloatingActionButton fab, fab1, fab2, fab3;
-    LinearLayout fabLayout1, fabLayout2, fabLayout3;
-    View fabBGLayout;
-    boolean isFABOpen = false;
+    private ImageView imageView;
+    private FloatingActionButton fab;
+    private LinearLayout fabLayout1, fabLayout2, fabLayout3;
+    private View fabBGLayout;
+    private boolean isFABOpen = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,9 +60,9 @@ public class MainActivity extends AppCompatActivity {
         fabLayout2 =  findViewById(R.id.fabLayoutChosePhoto);
         fabLayout3 = findViewById(R.id.fabLayoutTakePhoto);
         fab = findViewById(R.id.fabNative);
-        fab1 = findViewById(R.id.fabShareFile);
-        fab2 = findViewById(R.id.fabChosePhoto);
-        fab3 =  findViewById(R.id.fabTakePhoto);
+        FloatingActionButton fab1 = findViewById(R.id.fabShareFile);
+        FloatingActionButton fab2 = findViewById(R.id.fabChosePhoto);
+        FloatingActionButton fab3 = findViewById(R.id.fabTakePhoto);
         fabBGLayout = findViewById(R.id.fabBGLayout);
 
         fab.setOnClickListener(view -> {
@@ -122,20 +124,70 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && data != null) {
-            Uri selectedImage = data.getData();
-            String[] filePathColumn = {Environment.DIRECTORY_PICTURES};
-            if (selectedImage != null) {
-                Cursor cursor = getContentResolver().query(selectedImage, filePathColumn, null, null, null);
-                if (cursor != null) {
-                    cursor.moveToFirst();
-                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                    String picturePath = cursor.getString(columnIndex);
-                    Glide.with(this).load(BitmapFactory.decodeFile(picturePath)).into(imageView);
-                    cursor.close();
+            final Uri imageUri = data.getData();
+            final InputStream imageStream;
+            try {
+                imageStream = getContentResolver().openInputStream(imageUri);
+                final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                Glide.with(this).load(selectedImage).into(imageView);
+            } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            }
+        }
+    }
+
+    private void saveFile (String input) {
+        FileOutputStream fileOutputStream = null;
+        try {
+            fileOutputStream = openFileOutput(FILE_NAME, MODE_PRIVATE);
+            fileOutputStream.write(input.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fileOutputStream != null) {
+                try {
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }
     }
+
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String imageFileName = "jpg_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(imageFileName, ".jpg", storageDir);
+
+        String currentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                Toast toast = Toast.makeText(getApplicationContext(),
+                        R.string.cant_save_file, Toast.LENGTH_SHORT);
+                toast.show();
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(this,
+                        "com.example.writesavedata.provider",
+                        photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }
+    }
+
 
     private void showFABMenu() {
         isFABOpen = true;
@@ -191,69 +243,6 @@ public class MainActivity extends AppCompatActivity {
             super.onBackPressed();
         }
     }
-
-
-
-
-
-    private void saveFile (String input) {
-        FileOutputStream fileOutputStream = null;
-        try {
-            fileOutputStream = openFileOutput(FILE_NAME, MODE_PRIVATE);
-            fileOutputStream.write(input.getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (fileOutputStream != null) {
-                try {
-                    fileOutputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        String currentPhotoPath = image.getAbsolutePath();
-        return image;
-    }
-
-    private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the File where the photo should go
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                Toast toast = Toast.makeText(getApplicationContext(),
-                        "Нельзя сохранить файл!", Toast.LENGTH_SHORT);
-                toast.show();
-            }
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this,
-                        "com.example.writesavedata.provider",
-                        photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-            }
-        }
-    }
-
 
     @Override
     protected void onStart() {
