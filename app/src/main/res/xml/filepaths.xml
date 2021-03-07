@@ -4,9 +4,9 @@
     name = "files"
     path = "."/>
     <external-files-path
-        name="external_files"
+        name="my_images"
         path="." />
     <external-path
-        name="external_files"
+        name="my_images"
         path="." />
 </paths>
