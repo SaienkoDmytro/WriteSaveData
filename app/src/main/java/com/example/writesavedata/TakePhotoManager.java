@@ -5,33 +5,68 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
 
+import com.bumptech.glide.Glide;
+
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class WorkingFile {
+class TakePhotoManager implements ResultHandler {
 
-    private final static String FILE_NAME = "example.txt";
-    private static final int REQUEST_IMAGE_CAPTURE = 1;
-    private static final int PERMISSION_CODE = 999;
+    private static final int REQUEST_IMAGE_CAPTURE = 102;
+    private static final int REQUEST_IMAGE_PICK = 103;
+    private static final String FILE_NAME = "example.txt";
+    private static final int PERMISSION_CODE = 101;
+    private static String imageFilePath;
+    private final ImageView mImageView;
 
+    static void startAction(Activity activity) { takePhoto(activity); }
 
-    public static File createImageFile(final Context context) throws IOException {
+    public TakePhotoManager(ImageView imageView) { mImageView = imageView; }
+
+    @Override
+    public void handleActionResult(@NonNull Context context, int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE) {
+            Glide.with(context).load(imageFilePath).into(mImageView);
+        }
+        if (requestCode == REQUEST_IMAGE_PICK && data != null) {
+            final Uri imageUri = data.getData();
+            final InputStream imageStream;
+            try {
+                imageStream = context.getContentResolver().openInputStream(imageUri);
+                final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                Glide.with(context).load(selectedImage).into(mImageView);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static File createImageFile(final Activity activity) throws IOException {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        String imageFileName = "jpg_" + timeStamp + "_";
-        File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        return File.createTempFile(imageFileName, ".jpg", storageDir);
+        String imageFileName = "IMG_" + timeStamp + "_";
+        File storageDir = activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(imageFileName, ".jpg", storageDir);
+        imageFilePath = image.getAbsolutePath();
+        return image;
     }
 
     public static void takePhoto(final Activity activity) {
@@ -79,10 +114,15 @@ public class WorkingFile {
         }
     }
 
-    public static void saveFile (String input, final Context context) {
+    public static void pickPhoto(final Activity activity) {
+        Intent chosePhoto = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        activity.startActivityForResult(chosePhoto, REQUEST_IMAGE_PICK);
+    }
+
+    public static void saveFile(String input, final Activity activity) {
         FileOutputStream fileOutputStream = null;
         try {
-            fileOutputStream = context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
+            fileOutputStream = activity.openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
             fileOutputStream.write(input.getBytes());
         } catch (IOException e) {
             e.printStackTrace();
@@ -97,7 +137,7 @@ public class WorkingFile {
         }
     }
 
-    public static void shareFile(Activity activity) {
+    public static void shareFile(final Activity activity) {
         File file = new File(activity.getFilesDir(), FILE_NAME);
         Uri fileUri = FileProvider.getUriForFile(activity, "com.example.writesavedata.provider", file);
 
@@ -111,4 +151,5 @@ public class WorkingFile {
             activity.startActivity(Intent.createChooser(intentShare, activity.getString(R.string.text_share)));
         }
     }
+
 }
